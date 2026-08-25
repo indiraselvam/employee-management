@@ -3,8 +3,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_FRONTEND = "YOUR_DOCKERHUB_USERNAME/employee-frontend"
-        DOCKER_IMAGE_BACKEND = "YOUR_DOCKERHUB_USERNAME/employee-backend"
+        DOCKER_IMAGE_FRONTEND = "indira319/employee-frontend"
+        DOCKER_IMAGE_BACKEND  = "indira319/employee-backend"
     }
 
     stages {
@@ -34,13 +34,16 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE_BACKEND:$BUILD_NUMBER ./backend'
-                sh 'docker build -t $DOCKER_IMAGE_FRONTEND:$BUILD_NUMBER ./frontend'
+                sh '''
+                    docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} ./backend
+                    docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} ./frontend
+                '''
             }
         }
 
         stage('Push Docker Images') {
             steps {
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'dockerhub-credentials',
@@ -52,14 +55,16 @@ pipeline {
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-                        docker push $DOCKER_IMAGE_BACKEND:$BUILD_NUMBER
-                        docker push $DOCKER_IMAGE_FRONTEND:$BUILD_NUMBER
+                        docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
+                        docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
 
-                        docker tag $DOCKER_IMAGE_BACKEND:$BUILD_NUMBER $DOCKER_IMAGE_BACKEND:latest
-                        docker tag $DOCKER_IMAGE_FRONTEND:$BUILD_NUMBER $DOCKER_IMAGE_FRONTEND:latest
+                        docker tag ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} ${DOCKER_IMAGE_BACKEND}:latest
+                        docker tag ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} ${DOCKER_IMAGE_FRONTEND}:latest
 
-                        docker push $DOCKER_IMAGE_BACKEND:latest
-                        docker push $DOCKER_IMAGE_FRONTEND:latest
+                        docker push ${DOCKER_IMAGE_BACKEND}:latest
+                        docker push ${DOCKER_IMAGE_FRONTEND}:latest
+
+                        docker logout
                     '''
                 }
             }
@@ -67,12 +72,13 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deployment stage will be configured after AWS EC2 setup.'
+                echo 'AWS EC2 deployment will be configured in the next stage.'
             }
         }
     }
 
     post {
+
         success {
             echo 'CI pipeline completed successfully.'
         }
