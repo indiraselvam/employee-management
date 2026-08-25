@@ -35,8 +35,8 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 sh '''
-                    docker build -t ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER} ./backend
-                    docker build -t ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER} ./frontend
+                    docker build -t ${DOCKER_IMAGE_BACKEND}:latest ./backend
+                    docker build -t ${DOCKER_IMAGE_FRONTEND}:latest ./frontend
                 '''
             }
         }
